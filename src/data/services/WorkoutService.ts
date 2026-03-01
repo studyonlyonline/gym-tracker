@@ -22,6 +22,17 @@ export class WorkoutService {
         return exerciseRepo.findById(id);
     }
 
+    async addCustomExercise(name: string, bodyPart: BodyPart): Promise<Exercise> {
+        const exercise: Exercise = {
+            id: crypto.randomUUID(),
+            name,
+            bodyPart,
+            isCustom: true
+        };
+        await exerciseRepo.save(exercise);
+        return exercise;
+    }
+
     // --- Sessions & Sets ---
     async startNewSession(): Promise<WorkoutSession> {
         const session: WorkoutSession = {

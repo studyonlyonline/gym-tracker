@@ -13,6 +13,10 @@ export const ActiveSession: React.FC = () => {
     const [selectedBodyPart, setSelectedBodyPart] = useState<BodyPart | null>(null);
     const [exercises, setExercises] = useState<Exercise[]>([]);
 
+    // Custom exercise state
+    const [isCreatingCustom, setIsCreatingCustom] = useState(false);
+    const [customExerciseName, setCustomExerciseName] = useState('');
+
     // Group sets by exercise
     const [activeExercises, setActiveExercises] = useState<Exercise[]>([]);
 
@@ -39,8 +43,24 @@ export const ActiveSession: React.FC = () => {
 
     const handleSelectBodyPart = async (part: BodyPart) => {
         setSelectedBodyPart(part);
+        setIsCreatingCustom(false);
+        setCustomExerciseName('');
         const exList = await workoutService.getExercisesByBodyPart(part);
         setExercises(exList);
+    };
+
+    const handleCreateCustomExercise = async () => {
+        if (!customExerciseName.trim() || !selectedBodyPart) return;
+
+        // Save to DB
+        const newExercise = await workoutService.addCustomExercise(customExerciseName.trim(), selectedBodyPart);
+
+        // Add to active session right away
+        handleSelectExercise(newExercise);
+
+        // Reset states
+        setIsCreatingCustom(false);
+        setCustomExerciseName('');
     };
 
     const handleSelectExercise = (exercise: Exercise) => {
@@ -83,6 +103,44 @@ export const ActiveSession: React.FC = () => {
                             </button>
 
                             <h3 className="text-lg font-bold mb-4">{selectedBodyPart} Exercises</h3>
+
+                            {/* Create Custom Exercise Form / Toggle */}
+                            {!isCreatingCustom ? (
+                                <button
+                                    onClick={() => setIsCreatingCustom(true)}
+                                    className="w-full bg-blue-50 text-blue-700 p-4 rounded-xl shadow-sm border border-blue-100 flex justify-center items-center font-bold mb-4 active:bg-blue-100 transition-colors"
+                                >
+                                    <Plus size={20} className="mr-2" /> Create Custom Exercise
+                                </button>
+                            ) : (
+                                <div className="bg-white p-4 rounded-xl shadow-sm border border-blue-200 mb-4 animate-in fade-in slide-in-from-top-2">
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">New Exercise Name</label>
+                                    <div className="flex space-x-2">
+                                        <input
+                                            type="text"
+                                            value={customExerciseName}
+                                            onChange={(e) => setCustomExerciseName(e.target.value)}
+                                            placeholder="e.g. Incline Cable Fly"
+                                            className="flex-1 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                                            autoFocus
+                                        />
+                                        <button
+                                            onClick={handleCreateCustomExercise}
+                                            disabled={!customExerciseName.trim()}
+                                            className="bg-blue-600 disabled:bg-blue-300 text-white px-4 rounded-xl font-bold shadow-sm"
+                                        >
+                                            Add
+                                        </button>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsCreatingCustom(false)}
+                                        className="mt-3 text-sm text-gray-500 font-medium w-full text-center"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            )}
+
                             {exercises.length === 0 ? <p className="text-gray-500">No exercises found.</p> : null}
                             {exercises.map(ex => (
                                 <button
@@ -91,6 +149,10 @@ export const ActiveSession: React.FC = () => {
                                     className="w-full bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center active:bg-gray-50"
                                 >
                                     <span className="font-semibold">{ex.name}</span>
+                                    {ex.isCustom && (
+                                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-semibold ml-2">Custom</span>
+                                    )}
+                                    <span className="flex-1"></span>
                                     <Plus size={20} className="text-gray-400" />
                                 </button>
                             ))}
