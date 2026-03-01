@@ -14,6 +14,8 @@ export interface WorkoutSessionRepository {
     findById(id: string): Promise<WorkoutSession | null>;
     save(session: WorkoutSession): Promise<void>;
     getLatestSession(): Promise<WorkoutSession | null>;
+    getFirstSession(): Promise<WorkoutSession | null>;
+    getTotalDaysAttended(): Promise<number>;
 }
 
 export interface WorkoutSetRepository {
@@ -22,5 +24,5 @@ export interface WorkoutSetRepository {
     save(set: WorkoutSet): Promise<void>;
     deleteById(id: string): Promise<void>;
     // For progressive overload tracking:
-    getLastSetForExercise(exerciseId: string): Promise<WorkoutSet | null>;
+    getRecentSetsForExercise(exerciseId: string, limit: number): Promise<WorkoutSet[]>;
 }

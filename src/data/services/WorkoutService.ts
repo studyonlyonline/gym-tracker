@@ -51,6 +51,14 @@ export class WorkoutService {
         return sessionRepo.getAll();
     }
 
+    async getFirstSession(): Promise<WorkoutSession | null> {
+        return sessionRepo.getFirstSession();
+    }
+
+    async getTotalDaysAttended(): Promise<number> {
+        return sessionRepo.getTotalDaysAttended();
+    }
+
     async logSet(sessionId: string, exerciseId: string, weight: number, reps: number): Promise<WorkoutSet> {
         const set: WorkoutSet = {
             id: crypto.randomUUID(),
@@ -68,8 +76,8 @@ export class WorkoutService {
         return setRepo.getBySessionId(sessionId);
     }
 
-    async getLastSetForExercise(exerciseId: string): Promise<WorkoutSet | null> {
-        return setRepo.getLastSetForExercise(exerciseId);
+    async getRecentSetsForExercise(exerciseId: string, limit: number = 3): Promise<WorkoutSet[]> {
+        return setRepo.getRecentSetsForExercise(exerciseId, limit);
     }
 
     async deleteSet(setId: string): Promise<void> {

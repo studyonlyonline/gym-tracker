@@ -4,6 +4,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Settings } from './pages/Settings';
 import { ActiveSession } from './pages/ActiveSession';
 import { HistoryView } from './pages/HistoryView';
+import { SessionDetailView } from './pages/SessionDetailView';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="workout" element={<div className="p-6 text-center mt-20 text-gray-500 text-lg">Workout Hub (Coming soon)</div>} />
           <Route path="workout/:sessionId" element={<ActiveSession />} />
           <Route path="history" element={<HistoryView />} />
+          <Route path="history/:sessionId" element={<SessionDetailView />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>

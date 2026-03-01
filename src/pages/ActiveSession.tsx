@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { workoutService } from '../data/services/WorkoutService';
 import type { Exercise, WorkoutSet, BodyPart } from '../data/models/types';
-import { Plus, Check, ArrowLeft, History as HistoryIcon, X } from 'lucide-react';
+import { Plus, Check, ArrowLeft, History as HistoryIcon, X, Timer, Play, Pause, Minus } from 'lucide-react';
 
 export const ActiveSession: React.FC = () => {
     const { sessionId } = useParams<{ sessionId: string }>();
@@ -19,6 +19,35 @@ export const ActiveSession: React.FC = () => {
 
     // Group sets by exercise
     const [activeExercises, setActiveExercises] = useState<Exercise[]>([]);
+
+    // Rest Timer State
+    const [defaultTimerSecs] = useState(75); // 1 min 15 sec
+    const [timerSeconds, setTimerSeconds] = useState(75);
+    const [isTimerRunning, setIsTimerRunning] = useState(false);
+    const [isTimerVisible, setIsTimerVisible] = useState(false);
+
+    useEffect(() => {
+        let interval: ReturnType<typeof setTimeout>;
+        if (isTimerRunning && timerSeconds > 0) {
+            interval = setTimeout(() => setTimerSeconds(prev => prev - 1), 1000);
+        } else if (timerSeconds === 0 && isTimerRunning) {
+            setIsTimerRunning(false);
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]); // Vibrate on complete
+        }
+        return () => clearTimeout(interval);
+    }, [isTimerRunning, timerSeconds]);
+
+    const startTimer = () => {
+        setTimerSeconds(defaultTimerSecs);
+        setIsTimerRunning(true);
+        setIsTimerVisible(true);
+    };
+
+    const formatTime = (secs: number) => {
+        const m = Math.floor(secs / 60);
+        const s = secs % 60;
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    };
 
     useEffect(() => {
         if (!sessionId) return;
@@ -196,7 +225,10 @@ export const ActiveSession: React.FC = () => {
                             exercise={ex}
                             sessionId={sessionId!}
                             sessionSets={sets.filter(s => s.exerciseId === ex.id)}
-                            onSetLogged={() => loadSessionData(sessionId!)}
+                            onSetLogged={() => {
+                                loadSessionData(sessionId!);
+                                startTimer(); // Auto-start rest timer
+                            }}
                         />
                     ))
                 )}
@@ -208,6 +240,61 @@ export const ActiveSession: React.FC = () => {
                     className="w-full bg-primary-600 active:bg-primary-700 text-white font-bold py-4 rounded-2xl shadow-md mt-4 flex justify-center items-center"
                 >
                     <Plus size={20} className="mr-2" /> Add Next Exercise
+                </button>
+            )}
+
+            {/* Floating Rest Timer Component */}
+            {isTimerVisible && (
+                <div className="fixed bottom-6 right-6 bg-white rounded-2xl shadow-2xl border border-gray-200 p-4 w-64 z-40 animate-in slide-in-from-bottom-5">
+                    <div className="flex justify-between items-center mb-3">
+                        <div className="flex items-center text-primary-600 font-bold">
+                            <Timer size={18} className="mr-1" /> Rest Timer
+                        </div>
+                        <button onClick={() => setIsTimerVisible(false)} className="text-gray-400">
+                            <X size={18} />
+                        </button>
+                    </div>
+
+                    <div className="text-center font-mono text-4xl font-black text-gray-900 mb-4 tracking-tighter">
+                        {formatTime(timerSeconds)}
+                    </div>
+
+                    <div className="flex justify-between items-center bg-gray-50 rounded-xl p-1">
+                        <button
+                            onClick={() => setTimerSeconds(prev => Math.max(0, prev - 15))}
+                            className="p-2 text-gray-600 active:bg-gray-200 rounded-lg"
+                        >
+                            <Minus size={20} />
+                        </button>
+
+                        <button
+                            onClick={() => setIsTimerRunning(!isTimerRunning)}
+                            className={`p-3 rounded-xl text-white shadow-sm flex-1 mx-2 flex justify-center ${isTimerRunning ? 'bg-orange-500' : 'bg-primary-500'}`}
+                        >
+                            {isTimerRunning ? <Pause fill="currentColor" size={20} /> : <Play fill="currentColor" size={20} />}
+                        </button>
+
+                        <button
+                            onClick={() => setTimerSeconds(prev => prev + 15)}
+                            className="p-2 text-gray-600 active:bg-gray-200 rounded-lg"
+                        >
+                            <Plus size={20} />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {!isTimerVisible && (
+                <button
+                    onClick={() => {
+                        setIsTimerVisible(true);
+                        if (!isTimerRunning && timerSeconds === 0) {
+                            setTimerSeconds(defaultTimerSecs);
+                        }
+                    }}
+                    className="fixed bottom-6 right-6 bg-white p-4 rounded-full shadow-xl border border-gray-200 text-primary-600 z-40"
+                >
+                    <Timer size={24} />
                 </button>
             )}
         </div>
@@ -222,12 +309,16 @@ const ExerciseTrackerCard: React.FC<{
 }> = ({ exercise, sessionId, sessionSets, onSetLogged }) => {
     const [weight, setWeight] = useState('');
     const [reps, setReps] = useState('');
-    const [lastSet, setLastSet] = useState<WorkoutSet | null>(null);
+    const [pastSets, setPastSets] = useState<WorkoutSet[]>([]);
 
     useEffect(() => {
-        // Fetch last historical set for progressive overload logic
-        workoutService.getLastSetForExercise(exercise.id).then(setLastSet).catch(console.error);
-    }, [exercise.id]);
+        // Fetch last 3 historical sets for progressive overload logic
+        workoutService.getRecentSetsForExercise(exercise.id, 3).then(sets => {
+            // Filter out sets that were logged TODAY in THIS session to avoid confusion
+            const historical = sets.filter(s => s.sessionId !== sessionId);
+            setPastSets(historical.slice(0, 3));
+        }).catch(console.error);
+    }, [exercise.id, sessionId]);
 
     const handleLogSet = async () => {
         if (!weight || !reps) return;
@@ -253,17 +344,30 @@ const ExerciseTrackerCard: React.FC<{
                 </div>
             </div>
 
-            {/* Historical Last Set Reference */}
-            <div className="px-4 py-3 bg-blue-50/50 text-blue-800 text-sm flex items-center">
-                <HistoryIcon size={16} className="mr-2 text-blue-500" />
-                {lastSet ? (
-                    <span>
-                        Last: <span className="font-bold">{lastSet.weight}kg x {lastSet.reps} reps</span> ({timeAgoString(lastSet.loggedAt)})
-                    </span>
-                ) : (
+            {/* Historical Past 3 Sets Reference */}
+            {pastSets.length > 0 && (
+                <div className="px-4 py-3 bg-blue-50/50 text-blue-800 text-sm">
+                    <div className="flex items-center mb-2 font-semibold">
+                        <HistoryIcon size={16} className="mr-2 text-blue-500" />
+                        Previous History
+                    </div>
+                    <div className="space-y-1 pl-6">
+                        {pastSets.map((set, i) => (
+                            <div key={set.id} className="flex justify-between items-center text-xs border-b border-blue-100/50 pb-1 mb-1 last:border-0 last:pb-0 last:mb-0">
+                                <span className="text-blue-600/80 w-8">#{i + 1}</span>
+                                <span className="font-bold flex-1">{set.weight}kg x {set.reps} reps</span>
+                                <span className="text-blue-600/80 hidden sm:inline">{timeAgoString(set.loggedAt)}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+            {pastSets.length === 0 && (
+                <div className="px-4 py-3 bg-blue-50/50 text-blue-800 text-sm flex items-center">
+                    <HistoryIcon size={16} className="mr-2 text-blue-500" />
                     <span className="italic">No past history found.</span>
-                )}
-            </div>
+                </div>
+            )}
 
             <div className="p-4">
                 {/* Today's Sets List */}

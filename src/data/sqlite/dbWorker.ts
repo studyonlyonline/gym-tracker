@@ -1,4 +1,5 @@
 import sqlite3InitModule from '@sqlite.org/sqlite-wasm';
+import defaultExercises from '../config/defaultExercises.json';
 
 let db: any;
 let sqlite3Inst: any;
@@ -41,32 +42,20 @@ sqlite3InitModule().then((sqlite3) => {
     const count = countRes[0];
 
     if (count === 0) {
-        const initial = [
-            { id: crypto.randomUUID(), name: 'Bench Press', part: 'Chest' },
-            { id: crypto.randomUUID(), name: 'Incline Dumbbell Press', part: 'Chest' },
-            { id: crypto.randomUUID(), name: 'Lat Pulldown', part: 'Back' },
-            { id: crypto.randomUUID(), name: 'Barbell Row', part: 'Back' },
-            { id: crypto.randomUUID(), name: 'Bicep Curl', part: 'Biceps' },
-            { id: crypto.randomUUID(), name: 'Hammer Curl', part: 'Biceps' },
-            { id: crypto.randomUUID(), name: 'Tricep Extension', part: 'Triceps' },
-            { id: crypto.randomUUID(), name: 'Skullcrushers', part: 'Triceps' },
-            { id: crypto.randomUUID(), name: 'Squat', part: 'Legs' },
-            { id: crypto.randomUUID(), name: 'Leg Press', part: 'Legs' },
-            { id: crypto.randomUUID(), name: 'Overhead Press', part: 'Shoulders' },
-            { id: crypto.randomUUID(), name: 'Lateral Raise', part: 'Shoulders' }
-        ];
         let stmt = db.prepare('INSERT INTO exercises (id, name, bodyPart, isCustom) VALUES (?, ?, ?, 0)');
-        initial.forEach(ex => {
-            stmt.bind([ex.id, ex.name, ex.part]);
-            stmt.step();
-            stmt.reset();
-        });
+
+        for (const [bodyPart, exercises] of Object.entries(defaultExercises)) {
+            for (const exerciseName of (exercises as string[])) {
+                stmt.bind([crypto.randomUUID(), exerciseName, bodyPart]);
+                stmt.step();
+                stmt.reset();
+            }
+        }
         stmt.finalize();
     }
 
     self.postMessage({ type: 'READY' });
 }).catch(console.error);
-
 self.onmessage = (e) => {
     const { id, action, sql, bind } = e.data;
     if (!db && action !== 'READY') {

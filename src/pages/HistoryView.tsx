@@ -30,7 +30,7 @@ export const HistoryView: React.FC = () => {
                     sessions.map(session => (
                         <button
                             key={session.id}
-                            onClick={() => navigate(`/workout/${session.id}`)}
+                            onClick={() => navigate(`/history/${session.id}`)}
                             className="w-full bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center active:bg-gray-50 transition-colors text-left"
                         >
                             <div>
