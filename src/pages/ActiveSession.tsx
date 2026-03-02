@@ -112,7 +112,7 @@ export const ActiveSession: React.FC = () => {
                 <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
                     {!selectedBodyPart ? (
                         <div className="grid grid-cols-2 gap-3">
-                            {(['Chest', 'Back', 'Legs', 'Shoulders', 'Biceps', 'Triceps', 'Core'] as BodyPart[]).map(part => (
+                            {(['General', 'Chest', 'Back', 'Legs', 'Shoulders', 'Biceps', 'Triceps', 'Core'] as BodyPart[]).map(part => (
                                 <button
                                     key={part}
                                     onClick={() => handleSelectBodyPart(part)}
@@ -355,7 +355,7 @@ const ExerciseTrackerCard: React.FC<{
                         {pastSets.map((set, i) => (
                             <div key={set.id} className="flex justify-between items-center text-xs border-b border-blue-100/50 pb-1 mb-1 last:border-0 last:pb-0 last:mb-0">
                                 <span className="text-blue-600/80 w-8">#{i + 1}</span>
-                                <span className="font-bold flex-1">{set.weight}kg x {set.reps} reps</span>
+                                <span className="font-bold flex-1">{set.weight} lb x {set.reps} reps</span>
                                 <span className="text-blue-600/80 hidden sm:inline">{timeAgoString(set.loggedAt)}</span>
                             </div>
                         ))}
@@ -377,7 +377,7 @@ const ExerciseTrackerCard: React.FC<{
                         {sessionSets.map((s, idx) => (
                             <div key={s.id} className="flex justify-between items-center text-sm py-2 px-3 bg-gray-50 rounded-lg">
                                 <span className="font-medium text-gray-500 w-8">#{idx + 1}</span>
-                                <span className="font-bold text-gray-800 flex-1">{s.weight} kg</span>
+                                <span className="font-bold text-gray-800 flex-1">{s.weight} lb</span>
                                 <span className="font-bold text-gray-800 w-16 text-right">{s.reps} reps</span>
                                 <Check size={16} className="text-green-500 ml-4 hidden sm:block" />
                             </div>
@@ -396,7 +396,7 @@ const ExerciseTrackerCard: React.FC<{
                             onChange={e => setWeight(e.target.value)}
                             className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl py-3 pl-4 pr-8 focus:outline-none focus:ring-2 focus:ring-primary-500 font-medium font-mono"
                         />
-                        <span className="absolute right-3 top-3.5 text-gray-400 text-sm font-medium">kg</span>
+                        <span className="absolute right-3 top-3.5 text-gray-400 text-sm font-medium">lb</span>
                     </div>
                     <div className="flex-1 relative">
                         <input

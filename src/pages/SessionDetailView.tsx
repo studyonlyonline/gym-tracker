@@ -96,7 +96,7 @@ export const SessionDetailView: React.FC = () => {
                                         {exerciseSets.map((s, idx) => (
                                             <div key={s.id} className="flex justify-between items-center text-sm py-2 px-3 bg-gray-50 rounded-lg">
                                                 <span className="font-medium text-gray-500 w-8">#{idx + 1}</span>
-                                                <span className="font-bold text-gray-800 flex-1">{s.weight} kg</span>
+                                                <span className="font-bold text-gray-800 flex-1">{s.weight} lb</span>
                                                 <span className="font-bold text-gray-800 w-16 text-right">{s.reps} reps</span>
                                             </div>
                                         ))}

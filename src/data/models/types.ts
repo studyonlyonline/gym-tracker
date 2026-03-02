@@ -1,4 +1,4 @@
-export type BodyPart = 'Chest' | 'Back' | 'Biceps' | 'Triceps' | 'Legs' | 'Shoulders' | 'Core' | 'Other';
+export type BodyPart = 'General' | 'Chest' | 'Back' | 'Biceps' | 'Triceps' | 'Legs' | 'Shoulders' | 'Core' | 'Other';
 
 export interface Exercise {
     id: string;

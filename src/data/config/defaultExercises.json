@@ -1,16 +1,32 @@
 {
+    "General": [
+        "Running",
+        "Jumping Jacks",
+        "Single Leg raise",
+        "Sideways kettlebell"
+    ],
     "Chest": [
         "Bench Press",
+        "Flat bench Dumbbell Press",
         "Incline Dumbbell Press",
+        "Decline Dumbbell Press",
+        "Low Cable fly",
+        "Dumble fly",
         "Cable Crossovers",
         "Chest Dips",
-        "Pec Deck Fly"
+        "Pec Deck Fly",
+        "Push-ups",
+        "Machine Chest Press"
     ],
     "Back": [
-        "Barbell Row",
-        "Lat Pulldown",
+        "Wide Grip Lat Pulldown",
+        "Close Grip Lat Pulldown",
         "Pull-Ups",
         "Seated Cable Row",
+        "Barbell Bentover Row",
+        "Dumbbell Single arm row",
+        "Chest supported dumbell row",
+        "kettle bell swings",
         "Deadlift"
     ],
     "Legs": [
@@ -21,9 +37,12 @@
         "Calf Raises"
     ],
     "Shoulders": [
-        "Overhead Press",
+        "Dumbell Overhead Press",
         "Lateral Raise",
         "Front Raise",
+        "Rear Delt fly",
+        "Cable Face Pull",
+        "Shrugs",
         "Arnold Press",
         "Reverse Pec Deck"
     ],
