@@ -39,6 +39,33 @@ export class DatabaseService {
             alert('Failed to import database. See console for details.');
         }
     }
+
+    /**
+     * Completely wipes the SQLite database from OPFS and reloads.
+     */
+    async clearDatabase(): Promise<void> {
+        try {
+            const root = await navigator.storage.getDirectory();
+            try {
+                await root.removeEntry('gymtracker.sqlite3');
+            } catch (e) {
+                console.log('Database file might not exist yet.', e);
+            }
+            try {
+                await root.removeEntry('gymtracker.sqlite3-journal');
+            } catch (e) {
+                // Ignore
+            }
+            // Clear local storage too just in case
+            localStorage.clear();
+
+            // Reload to re-initialize an empty database
+            window.location.href = '/';
+        } catch (error) {
+            console.error('Failed to wipe database:', error);
+            alert('Failed to completely wipe the database. It may already be empty.');
+        }
+    }
 }
 
 export const databaseService = new DatabaseService();

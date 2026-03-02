@@ -1,6 +1,6 @@
 import React from 'react';
 import { databaseService } from '../data/services/DatabaseService';
-import { Download, Upload } from 'lucide-react';
+import { Download, Upload, AlertTriangle } from 'lucide-react';
 
 export const Settings: React.FC = () => {
     const handleExport = async () => {
@@ -21,6 +21,14 @@ export const Settings: React.FC = () => {
                 await databaseService.importDatabase(file);
             } catch (err) {
                 console.error(err);
+            }
+        }
+    };
+
+    const handleWipeDatabase = async () => {
+        if (window.confirm('🚨 DANGER! This will permanently delete your entire workout history and custom exercises. You cannot undo this unless you have exported a backup first.\n\nAre you 100% sure you want to wipe the app?')) {
+            if (window.confirm('Final warning: Delete all data?')) {
+                await databaseService.clearDatabase();
             }
         }
     };
@@ -63,6 +71,23 @@ export const Settings: React.FC = () => {
                             Importing will immediately overwrite all current data.
                         </p>
                     </div>
+                </section>
+
+                <section className="bg-red-50 p-5 rounded-2xl shadow-sm border border-red-100">
+                    <h2 className="text-lg font-bold text-red-800 mb-2 flex items-center">
+                        <AlertTriangle size={20} className="mr-2 text-red-600" />
+                        Danger Zone
+                    </h2>
+                    <p className="text-sm text-red-700/80 mb-6 font-medium">
+                        Permanently delete your entire database and reset the application to its factory default state.
+                    </p>
+
+                    <button
+                        onClick={handleWipeDatabase}
+                        className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center transition-colors active:scale-95 transform shadow-sm"
+                    >
+                        <span>Wipe All Data</span>
+                    </button>
                 </section>
             </div>
         </div>
