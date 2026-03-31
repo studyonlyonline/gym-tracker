@@ -1,25 +1,24 @@
 import type { Exercise, WorkoutSession, WorkoutSet, BodyPart } from '../models/types';
-import { SqliteExerciseRepository } from '../sqlite/SqliteExerciseRepository';
-import { SqliteWorkoutSessionRepository, SqliteWorkoutSetRepository } from '../sqlite/SqliteWorkoutRepositories';
+import { RepositoryFactory } from '../factory/RepositoryFactory';
 
-// Singleton instances functioning like Spring @Service and @Repository beans
-const exerciseRepo = new SqliteExerciseRepository();
-const sessionRepo = new SqliteWorkoutSessionRepository();
-const setRepo = new SqliteWorkoutSetRepository();
+// Fetch instances via the Factory pattern
+const getExerciseRepo = () => RepositoryFactory.getExerciseRepository();
+const getSessionRepo = () => RepositoryFactory.getWorkoutSessionRepository();
+const getSetRepo = () => RepositoryFactory.getWorkoutSetRepository();
 
 export class WorkoutService {
 
     // --- Exercises ---
     async getExercisesByBodyPart(part: BodyPart): Promise<Exercise[]> {
-        return exerciseRepo.getByBodyPart(part);
+        return getExerciseRepo().getByBodyPart(part);
     }
 
     async getAllExercises(): Promise<Exercise[]> {
-        return exerciseRepo.getAll();
+        return getExerciseRepo().getAll();
     }
 
     async getExerciseById(id: string): Promise<Exercise | null> {
-        return exerciseRepo.findById(id);
+        return getExerciseRepo().findById(id);
     }
 
     async addCustomExercise(name: string, bodyPart: BodyPart): Promise<Exercise> {
@@ -29,7 +28,7 @@ export class WorkoutService {
             bodyPart,
             isCustom: true
         };
-        await exerciseRepo.save(exercise);
+        await getExerciseRepo().save(exercise);
         return exercise;
     }
 
@@ -39,24 +38,24 @@ export class WorkoutService {
             id: crypto.randomUUID(),
             date: Date.now()
         };
-        await sessionRepo.save(session);
+        await getSessionRepo().save(session);
         return session;
     }
 
     async getLatestSession(): Promise<WorkoutSession | null> {
-        return sessionRepo.getLatestSession();
+        return getSessionRepo().getLatestSession();
     }
 
     async getAllSessions(): Promise<WorkoutSession[]> {
-        return sessionRepo.getAll();
+        return getSessionRepo().getAll();
     }
 
     async getFirstSession(): Promise<WorkoutSession | null> {
-        return sessionRepo.getFirstSession();
+        return getSessionRepo().getFirstSession();
     }
 
     async getTotalDaysAttended(): Promise<number> {
-        return sessionRepo.getTotalDaysAttended();
+        return getSessionRepo().getTotalDaysAttended();
     }
 
     async logSet(sessionId: string, exerciseId: string, weight: number, reps: number): Promise<WorkoutSet> {
@@ -68,20 +67,20 @@ export class WorkoutService {
             reps,
             loggedAt: Date.now()
         };
-        await setRepo.save(set);
+        await getSetRepo().save(set);
         return set;
     }
 
     async getSetsForSession(sessionId: string): Promise<WorkoutSet[]> {
-        return setRepo.getBySessionId(sessionId);
+        return getSetRepo().getBySessionId(sessionId);
     }
 
     async getRecentSetsForExercise(exerciseId: string, limit: number = 3): Promise<WorkoutSet[]> {
-        return setRepo.getRecentSetsForExercise(exerciseId, limit);
+        return getSetRepo().getRecentSetsForExercise(exerciseId, limit);
     }
 
     async deleteSet(setId: string): Promise<void> {
-        await setRepo.deleteById(setId);
+        await getSetRepo().deleteById(setId);
     }
 }
 
