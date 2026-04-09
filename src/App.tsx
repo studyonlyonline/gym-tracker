@@ -7,7 +7,6 @@ import { HistoryView } from './pages/HistoryView';
 import { SessionDetailView } from './pages/SessionDetailView';
 
 import { useEffect, useState } from 'react';
-import { getJsonConfig } from './data/json/jsonConfig';
 import { jsonDatabase } from './data/json/JsonDatabaseService';
 import { get } from 'idb-keyval';
 
@@ -16,16 +15,13 @@ function App() {
 
   useEffect(() => {
       const checkPermission = async () => {
-          if (getJsonConfig().enabled) {
-              const handle = await get('gymtracker_json_file_handle');
-              if (handle) {
-                  const valid = await jsonDatabase.hasValidHandle();
-                  if (!valid) {
-                      setNeedsPermission(true);
-                  } else {
-                      // Init DB if permission is already good
-                      await jsonDatabase.init();
-                  }
+          const handle = await get('gymtracker_json_file_handle');
+          if (handle) {
+              const valid = await jsonDatabase.hasValidHandle();
+              if (!valid) {
+                  setNeedsPermission(true);
+              } else {
+                  await jsonDatabase.init();
               }
           }
       };

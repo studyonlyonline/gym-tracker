@@ -10,13 +10,17 @@ export interface DatabaseSchema {
     workoutSets: WorkoutSet[];
 }
 
+function generateDefaultId(name: string): string {
+    return 'default_' + name.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+}
+
 function parseDefaultExercises(): Exercise[] {
     const exercises: Exercise[] = [];
     const typedDefaults = defaultExercisesData as Record<string, string[]>;
     for (const [bodyPart, names] of Object.entries(typedDefaults)) {
         for (const name of names) {
             exercises.push({
-                id: crypto.randomUUID(),
+                id: generateDefaultId(name),
                 name,
                 bodyPart: bodyPart as BodyPart,
                 isCustom: false
@@ -75,7 +79,7 @@ class JsonDatabaseService {
         try {
             const parsed = JSON.parse(text);
             this.data = {
-                exercises: parsed.exercises || defaultExercisesData,
+                exercises: parsed.exercises || parseDefaultExercises(),
                 workoutSessions: parsed.workoutSessions || [],
                 workoutSets: parsed.workoutSets || []
             };
