@@ -1,29 +1,29 @@
 import type { ExerciseRepository, WorkoutSessionRepository, WorkoutSetRepository } from '../repositories/interfaces';
 import { SqliteExerciseRepository } from '../sqlite/SqliteExerciseRepository';
 import { SqliteWorkoutSessionRepository, SqliteWorkoutSetRepository } from '../sqlite/SqliteWorkoutRepositories';
-import { MongoExerciseRepository } from '../mongo/MongoExerciseRepository';
-import { MongoWorkoutSessionRepository } from '../mongo/MongoWorkoutSessionRepository';
-import { MongoWorkoutSetRepository } from '../mongo/MongoWorkoutSetRepository';
-import { getMongoConfig } from '../mongo/mongoConfig';
+import { JsonExerciseRepository } from '../json/JsonExerciseRepository';
+import { JsonWorkoutSessionRepository } from '../json/JsonWorkoutSessionRepository';
+import { JsonWorkoutSetRepository } from '../json/JsonWorkoutSetRepository';
+import { getJsonConfig } from '../json/jsonConfig';
 
 export class RepositoryFactory {
     static getExerciseRepository(): ExerciseRepository {
-        if (getMongoConfig().enabled) {
-            return new MongoExerciseRepository();
+        if (getJsonConfig().enabled) {
+            return new JsonExerciseRepository();
         }
         return new SqliteExerciseRepository();
     }
 
     static getWorkoutSessionRepository(): WorkoutSessionRepository {
-        if (getMongoConfig().enabled) {
-            return new MongoWorkoutSessionRepository();
+        if (getJsonConfig().enabled) {
+            return new JsonWorkoutSessionRepository();
         }
         return new SqliteWorkoutSessionRepository();
     }
 
     static getWorkoutSetRepository(): WorkoutSetRepository {
-        if (getMongoConfig().enabled) {
-            return new MongoWorkoutSetRepository();
+        if (getJsonConfig().enabled) {
+            return new JsonWorkoutSetRepository();
         }
         return new SqliteWorkoutSetRepository();
     }
