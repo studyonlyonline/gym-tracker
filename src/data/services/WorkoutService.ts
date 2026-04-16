@@ -58,6 +58,14 @@ export class WorkoutService {
         return getSessionRepo().getTotalDaysAttended();
     }
 
+    async deleteSession(sessionId: string): Promise<void> {
+        return getSessionRepo().deleteById(sessionId);
+    }
+    
+    async updateSession(session: WorkoutSession): Promise<void> {
+        return getSessionRepo().save(session);
+    }
+
     async logSet(sessionId: string, exerciseId: string, weight: number, reps: number): Promise<WorkoutSet> {
         const set: WorkoutSet = {
             id: crypto.randomUUID(),

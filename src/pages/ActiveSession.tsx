@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { workoutService } from '../data/services/WorkoutService';
-import type { Exercise, WorkoutSet, BodyPart } from '../data/models/types';
+import type { Exercise, WorkoutSet, WorkoutSession, BodyPart } from '../data/models/types';
 import { Plus, Check, ArrowLeft, History as HistoryIcon, X, Timer, Play, Pause, Minus } from 'lucide-react';
 
 export const ActiveSession: React.FC = () => {
     const { sessionId } = useParams<{ sessionId: string }>();
     const navigate = useNavigate();
     const [sets, setSets] = useState<WorkoutSet[]>([]);
+    const [session, setSession] = useState<WorkoutSession | null>(null);
 
     const [isSelectingExercise, setIsSelectingExercise] = useState(false);
     const [selectedBodyPart, setSelectedBodyPart] = useState<BodyPart | null>(null);
@@ -55,6 +56,11 @@ export const ActiveSession: React.FC = () => {
     }, [sessionId]);
 
     const loadSessionData = async (id: string) => {
+        // Fetch session
+        const allSessions = await workoutService.getAllSessions();
+        const sess = allSessions.find(s => s.id === id);
+        if (sess) setSession(sess);
+
         // We'd fetch the session to ensure it exists
         const sessionSets = await workoutService.getSetsForSession(id);
         setSets(sessionSets);
@@ -200,7 +206,14 @@ export const ActiveSession: React.FC = () => {
                     <p className="text-sm text-gray-500">Record your sets below</p>
                 </div>
                 <button
-                    onClick={() => navigate('/')}
+                    onClick={async () => {
+                        if (sets.length === 0 && sessionId) {
+                            await workoutService.deleteSession(sessionId);
+                        } else if (session) {
+                            await workoutService.updateSession(session);
+                        }
+                        navigate('/');
+                    }}
                     className="bg-green-100 text-green-700 px-4 py-2 rounded-xl font-bold text-sm"
                 >
                     Finish
@@ -241,6 +254,36 @@ export const ActiveSession: React.FC = () => {
                 >
                     <Plus size={20} className="mr-2" /> Add Next Exercise
                 </button>
+            )}
+
+            {/* Session Notes Feature */}
+            {session && activeExercises.length > 0 && (
+                <div className="mt-8 mb-10 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Workout Notes</h3>
+                    
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Performance (How did it go?)</label>
+                            <textarea 
+                                value={session.notes?.performance || ''}
+                                onChange={(e) => setSession({...session, notes: { ...session.notes, performance: e.target.value }})}
+                                onBlur={() => workoutService.updateSession(session)}
+                                placeholder="Felt strong today, increased bench by 5lbs..."
+                                className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Post-workout Nutrition</label>
+                            <textarea 
+                                value={session.notes?.nutrition || ''}
+                                onChange={(e) => setSession({...session, notes: { ...session.notes, nutrition: e.target.value }})}
+                                onBlur={() => workoutService.updateSession(session)}
+                                placeholder="Protein shake and two bananas..."
+                                className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
+                            />
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* Floating Rest Timer Component */}
@@ -321,7 +364,7 @@ const ExerciseTrackerCard: React.FC<{
     }, [exercise.id, sessionId]);
 
     const handleLogSet = async () => {
-        if (!weight || !reps) return;
+        if (!weight || !reps || parseInt(reps, 10) <= 0) return;
         await workoutService.logSet(sessionId, exercise.id, parseFloat(weight), parseInt(reps, 10));
         setWeight('');
         setReps('');

@@ -13,6 +13,7 @@ export interface WorkoutSessionRepository {
     getAll(): Promise<WorkoutSession[]>;
     findById(id: string): Promise<WorkoutSession | null>;
     save(session: WorkoutSession): Promise<void>;
+    deleteById(id: string): Promise<void>;
     getLatestSession(): Promise<WorkoutSession | null>;
     getFirstSession(): Promise<WorkoutSession | null>;
     getTotalDaysAttended(): Promise<number>;

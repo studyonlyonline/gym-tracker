@@ -10,6 +10,10 @@ export interface Exercise {
 export interface WorkoutSession {
     id: string;
     date: number; // ms timestamp
+    notes?: {
+        performance?: string;
+        nutrition?: string;
+    };
 }
 
 export interface WorkoutSet {

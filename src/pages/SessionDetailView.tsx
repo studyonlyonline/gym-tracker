@@ -11,6 +11,9 @@ export const SessionDetailView: React.FC = () => {
     const [session, setSession] = useState<WorkoutSession | null>(null);
     const [sets, setSets] = useState<WorkoutSet[]>([]);
     const [exercises, setExercises] = useState<Record<string, Exercise>>({});
+    
+    const [isEditingNotes, setIsEditingNotes] = useState(false);
+    const [editNotes, setEditNotes] = useState({ performance: '', nutrition: '' });
 
     useEffect(() => {
         const loadSessionDetails = async () => {
@@ -22,6 +25,10 @@ export const SessionDetailView: React.FC = () => {
             const foundSession = allSessions.find(s => s.id === sessionId);
             if (!foundSession) return;
             setSession(foundSession);
+            setEditNotes({
+                performance: foundSession.notes?.performance || '',
+                nutrition: foundSession.notes?.nutrition || ''
+            });
 
             const sessionSets = await workoutService.getSetsForSession(sessionId);
             setSets(sessionSets);
@@ -52,6 +59,14 @@ export const SessionDetailView: React.FC = () => {
     });
 
     const uniqueExerciseIds = Object.keys(groupedSets);
+
+    const handleSaveNotes = async () => {
+        if (!session) return;
+        const updatedSession = { ...session, notes: editNotes };
+        await workoutService.updateSession(updatedSession);
+        setSession(updatedSession);
+        setIsEditingNotes(false);
+    };
 
     return (
         <div className="p-4 h-full flex flex-col bg-gray-50/50">
@@ -106,6 +121,54 @@ export const SessionDetailView: React.FC = () => {
                         );
                     })
                 )}
+
+                {/* Session Notes Section */}
+                <div className="mt-8 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-bold text-gray-900">Workout Notes</h3>
+                        {!isEditingNotes ? (
+                            <button onClick={() => setIsEditingNotes(true)} className="text-sm font-semibold text-primary-600 hover:text-primary-700">
+                                Edit Notes
+                            </button>
+                        ) : (
+                            <button onClick={handleSaveNotes} className="bg-primary-100 text-primary-700 px-3 py-1.5 rounded-lg text-sm font-bold">
+                                Save
+                            </button>
+                        )}
+                    </div>
+
+                    {!isEditingNotes ? (
+                        <div className="space-y-4">
+                            <div>
+                                <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Performance</h4>
+                                <p className="text-gray-800 text-sm whitespace-pre-wrap">{session.notes?.performance || 'No notes added.'}</p>
+                            </div>
+                            <div>
+                                <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Nutrition</h4>
+                                <p className="text-gray-800 text-sm whitespace-pre-wrap">{session.notes?.nutrition || 'No notes added.'}</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Performance</label>
+                                <textarea 
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary-500 min-h-[80px]"
+                                    value={editNotes.performance}
+                                    onChange={(e) => setEditNotes({...editNotes, performance: e.target.value})}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Nutrition</label>
+                                <textarea 
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary-500 min-h-[80px]"
+                                    value={editNotes.nutrition}
+                                    onChange={(e) => setEditNotes({...editNotes, nutrition: e.target.value})}
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

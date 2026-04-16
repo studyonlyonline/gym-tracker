@@ -19,6 +19,14 @@ export class JsonWorkoutSessionRepository implements WorkoutSessionRepository {
         return jsonDatabase.data.workoutSessions.find(s => s.id === id) || null;
     }
 
+    async deleteById(id: string): Promise<void> {
+        await jsonDatabase.init();
+        jsonDatabase.data.workoutSessions = jsonDatabase.data.workoutSessions.filter(s => s.id !== id);
+        // Also clean up any sets referencing this session to maintain integrity
+        jsonDatabase.data.workoutSets = jsonDatabase.data.workoutSets.filter(s => s.sessionId !== id);
+        await jsonDatabase.save();
+    }
+
     async getLatestSession(): Promise<WorkoutSession | null> {
         await jsonDatabase.init();
         const sessions = [...jsonDatabase.data.workoutSessions].sort((a, b) => b.date - a.date);
