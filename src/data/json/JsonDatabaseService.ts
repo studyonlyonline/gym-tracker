@@ -78,8 +78,15 @@ class JsonDatabaseService {
         }
         try {
             const parsed = JSON.parse(text);
+            
+            // Seamlessly merge any NEW default exercises from app updates
+            const defaults = parseDefaultExercises();
+            const userExercises = parsed.exercises || [];
+            const existingIds = new Set(userExercises.map((e: any) => e.id));
+            const missingDefaults = defaults.filter(e => !existingIds.has(e.id));
+            
             this.data = {
-                exercises: parsed.exercises || parseDefaultExercises(),
+                exercises: [...userExercises, ...missingDefaults],
                 workoutSessions: parsed.workoutSessions || [],
                 workoutSets: parsed.workoutSets || []
             };
