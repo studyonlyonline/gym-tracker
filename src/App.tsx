@@ -14,18 +14,20 @@ function App() {
   const [needsPermission, setNeedsPermission] = useState(false);
 
   useEffect(() => {
-      const checkPermission = async () => {
+      const initializeAndCheckPermission = async () => {
+          // Initialize DB from IndexedDB cache immediately (Safari, Chrome, mobile & desktop)
+          await jsonDatabase.init();
+
+          // If a file handle was previously linked, check if browser needs permission grant
           const handle = await get('gymtracker_json_file_handle');
           if (handle) {
               const valid = await jsonDatabase.hasValidHandle();
               if (!valid) {
                   setNeedsPermission(true);
-              } else {
-                  await jsonDatabase.init();
               }
           }
       };
-      checkPermission();
+      initializeAndCheckPermission();
   }, []);
 
   const handleGrant = async () => {
