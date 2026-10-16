@@ -6,6 +6,21 @@ const getExerciseRepo = () => RepositoryFactory.getExerciseRepository();
 const getSessionRepo = () => RepositoryFactory.getWorkoutSessionRepository();
 const getSetRepo = () => RepositoryFactory.getWorkoutSetRepository();
 
+function generateUUID(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        try {
+            return crypto.randomUUID();
+        } catch {
+            // fallback if context is not secure
+        }
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0;
+        const v = c === 'x' ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+    });
+}
+
 export class WorkoutService {
 
     // --- Exercises ---
@@ -23,7 +38,7 @@ export class WorkoutService {
 
     async addCustomExercise(name: string, bodyPart: BodyPart): Promise<Exercise> {
         const exercise: Exercise = {
-            id: crypto.randomUUID(),
+            id: generateUUID(),
             name,
             bodyPart,
             isCustom: true
@@ -35,7 +50,7 @@ export class WorkoutService {
     // --- Sessions & Sets ---
     async startNewSession(): Promise<WorkoutSession> {
         const session: WorkoutSession = {
-            id: crypto.randomUUID(),
+            id: generateUUID(),
             date: Date.now()
         };
         await getSessionRepo().save(session);
@@ -68,7 +83,7 @@ export class WorkoutService {
 
     async logSet(sessionId: string, exerciseId: string, weight: number, reps: number): Promise<WorkoutSet> {
         const set: WorkoutSet = {
-            id: crypto.randomUUID(),
+            id: generateUUID(),
             sessionId,
             exerciseId,
             weight,

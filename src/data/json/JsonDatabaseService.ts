@@ -39,6 +39,7 @@ class JsonDatabaseService {
     };
     private fileHandle: any | null = null;
     private initialized = false;
+    private initPromise: Promise<void> | null = null;
 
     private hydrateData(parsed: any) {
         if (!parsed || typeof parsed !== 'object') return;
@@ -56,28 +57,35 @@ class JsonDatabaseService {
 
     async init() {
         if (this.initialized) return;
+        if (this.initPromise) return this.initPromise;
 
-        // 1. Restore from IndexedDB first (guarantees persistence across reloads on iOS Safari and everywhere)
-        try {
-            const cached = await get<DatabaseSchema>(DB_CACHE_KEY);
-            if (cached) {
-                this.hydrateData(cached);
+        this.initPromise = (async () => {
+            // 1. Restore from IndexedDB first (guarantees persistence across reloads on iOS Safari and everywhere)
+            try {
+                const cached = await get<DatabaseSchema>(DB_CACHE_KEY);
+                if (cached) {
+                    this.hydrateData(cached);
+                }
+            } catch (e) {
+                console.error("Failed to read from IndexedDB cache", e);
             }
-        } catch (e) {
-            console.error("Failed to read from IndexedDB cache", e);
-        }
 
-        // 2. If a native File Handle exists (e.g. Android Chrome), load from it
-        try {
-            this.fileHandle = await get(FILE_HANDLE_KEY);
-            if (this.fileHandle) {
-                await this.loadFromFile();
+            // 2. If a native File Handle exists (e.g. Android Chrome), load from it
+            try {
+                if (typeof window !== 'undefined' && 'showOpenFilePicker' in window) {
+                    this.fileHandle = await get(FILE_HANDLE_KEY);
+                    if (this.fileHandle) {
+                        await this.loadFromFile();
+                    }
+                }
+            } catch (e) {
+                console.warn("Could not load from file handle", e);
             }
-        } catch (e) {
-            console.warn("Could not load from file handle", e);
-        }
 
-        this.initialized = true;
+            this.initialized = true;
+        })();
+
+        return this.initPromise;
     }
 
     async hasValidHandle(): Promise<boolean> {

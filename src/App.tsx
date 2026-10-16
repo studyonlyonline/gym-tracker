@@ -18,12 +18,14 @@ function App() {
           // Initialize DB from IndexedDB cache immediately (Safari, Chrome, mobile & desktop)
           await jsonDatabase.init();
 
-          // If a file handle was previously linked, check if browser needs permission grant
-          const handle = await get('gymtracker_json_file_handle');
-          if (handle) {
-              const valid = await jsonDatabase.hasValidHandle();
-              if (!valid) {
-                  setNeedsPermission(true);
+          // If a file handle was previously linked, check if browser needs permission grant (only on browsers supporting File System Access API)
+          if (typeof window !== 'undefined' && 'showOpenFilePicker' in window) {
+              const handle = await get('gymtracker_json_file_handle');
+              if (handle) {
+                  const valid = await jsonDatabase.hasValidHandle();
+                  if (!valid) {
+                      setNeedsPermission(true);
+                  }
               }
           }
       };
@@ -38,12 +40,20 @@ function App() {
      }
   };
 
+  const handleUseLocalStorage = async () => {
+     await jsonDatabase.clearLink();
+     setNeedsPermission(false);
+  };
+
   if (needsPermission) {
       return (
          <div className="fixed inset-0 bg-gray-50 z-50 flex flex-col items-center justify-center p-6 text-center">
               <h1 className="text-2xl font-bold mb-4 text-gray-900">Database Connection Needs Refresh</h1>
-              <p className="text-gray-600 mb-8 max-w-md">Your browser reset the secure connection to your JSON database file. Please click below to re-authorize the connection.</p>
-              <button onClick={handleGrant} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-sm transition-colors">Reconnect to File</button>
+              <p className="text-gray-600 mb-8 max-w-md">Your browser reset the secure connection to your JSON database file. Please click below to re-authorize the connection, or continue using local device storage.</p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                  <button onClick={handleGrant} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-sm transition-colors">Reconnect to File</button>
+                  <button onClick={handleUseLocalStorage} className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-xl font-bold transition-colors">Use Local Storage</button>
+              </div>
          </div>
       );
   }
